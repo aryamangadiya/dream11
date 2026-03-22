@@ -203,9 +203,6 @@ app.get('/leaderboard', (req, res) => {
   res.send(data);
 });
 
-app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000");
-});
 app.get('/points', (req, res) => {
   const mockPlayers = [
     { name: "Kohli", runs: 45, balls: 30, fours: 5, sixes: 2, playingXI: true },
@@ -219,4 +216,9 @@ app.get('/points', (req, res) => {
   });
 
   res.send({ total });
+});
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running on port " + PORT);
 });
