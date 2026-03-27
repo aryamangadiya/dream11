@@ -46,7 +46,7 @@ export default function App() {
   ];
 
   const joinLeague = async () => {
-    const res = await fetch("http://localhost:5000/join", {
+    const res = await fetch("https://dream11-hflf.onrender.com/join", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ username, code: "IPL123" })
@@ -89,7 +89,7 @@ export default function App() {
       return;
     }
 
-    const res = await fetch("http://localhost:5000/team", {
+    const res = await fetch("https://dream11-hflf.onrender.com/team", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
@@ -122,15 +122,15 @@ export default function App() {
     if (!joined) return;
 
     const interval = setInterval(async () => {
-      const res = await fetch("http://localhost:5000/live/1");
+      const res = await fetch("https://dream11-hflf.onrender.com/live/1");
       const data = await res.json();
       setLive(data);
 
-      const lb = await fetch("http://localhost:5000/leaderboard");
+      const lb = await fetch("https://dream11-hflf.onrender.com/leaderboard");
       const lbData = await lb.json();
       setLeaderboard(lbData);
 
-      const pts = await fetch("http://localhost:5000/points");
+      const pts = await fetch("https://dream11-hflf.onrender.com/points");
       const ptsData = await pts.json();
       setPoints(ptsData.total);
 
