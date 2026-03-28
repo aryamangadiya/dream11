@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const API_KEY = "YOUR_CRICAPI_KEY"; // we will add shortly
+const API_KEY = "375bf52c-85b3-4cac-b103-f7505c88958d"; // we will add shortly
 
 let teamsLocked = false;
 let playingXI = [];
