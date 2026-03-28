@@ -1,19 +1,17 @@
-const express = require("express");
-const cors = require("cors");
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+import express from "express";
+import cors from "cors";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-const API_KEY = "375bf52c-85b3-4cac-b103-f7505c88958d"; // we will add shortly
+const API_KEY = "375bf52c-85b3-4cac-b103-f7505c88958d";
 
-let teamsLocked = false;
-let playingXI = [];
+let locked = false;
 
 
-// Get today's IPL match
+// Get Today's Match
 app.get("/match", async (req, res) => {
   try {
     const response = await fetch(
@@ -22,21 +20,23 @@ app.get("/match", async (req, res) => {
 
     const data = await response.json();
 
-    const iplMatch = data.data.find(m => m.name.includes("IPL"));
+    const ipl = data.data?.find(m =>
+      m.name?.includes("IPL")
+    );
 
-    res.send(iplMatch);
+    res.send(ipl);
 
   } catch (err) {
-    res.send({ error: "Match fetch failed" });
+    res.send({ error: "match fetch failed" });
   }
 });
 
 
-// Get squad
-app.get("/squad/:matchId", async (req, res) => {
+// Get Squad
+app.get("/squad/:id", async (req, res) => {
   try {
     const response = await fetch(
-      `https://api.cricapi.com/v1/match_squad?apikey=${API_KEY}&id=${req.params.matchId}`
+      `https://api.cricapi.com/v1/match_squad?apikey=${API_KEY}&id=${req.params.id}`
     );
 
     const data = await response.json();
@@ -44,73 +44,59 @@ app.get("/squad/:matchId", async (req, res) => {
     res.send(data);
 
   } catch (err) {
-    res.send({ error: "Squad fetch failed" });
+    res.send({ error: "squad fetch failed" });
   }
 });
 
 
-// Get playing XI
-app.get("/playingXI/:matchId", async (req, res) => {
+// Playing XI
+app.get("/playingXI/:id", async (req, res) => {
   try {
     const response = await fetch(
-      `https://api.cricapi.com/v1/match_info?apikey=${API_KEY}&id=${req.params.matchId}`
+      `https://api.cricapi.com/v1/match_info?apikey=${API_KEY}&id=${req.params.id}`
     );
 
     const data = await response.json();
 
-    playingXI = data.data.teamInfo;
-
-    res.send(playingXI);
+    res.send(data);
 
   } catch (err) {
-    res.send({ error: "Playing XI fetch failed" });
+    res.send({ error: "playing XI fetch failed" });
   }
 });
 
 
-// Live score
-app.get("/live/:matchId", async (req, res) => {
+// Live Score
+app.get("/live/:id", async (req, res) => {
   try {
     const response = await fetch(
-      `https://api.cricapi.com/v1/cricScore?apikey=${API_KEY}&unique_id=${req.params.matchId}`
+      `https://api.cricapi.com/v1/cricScore?apikey=${API_KEY}&unique_id=${req.params.id}`
     );
 
     const data = await response.json();
 
-    // Lock team after first ball
-    if (data.score && data.score[0].o > 0) {
-      teamsLocked = true;
+    if (data.score && data.score[0]?.o > 0) {
+      locked = true;
     }
 
     res.send({
-      score: data.score,
-      locked: teamsLocked
+      live: data,
+      locked
     });
 
   } catch (err) {
-    res.send({ error: "Live fetch failed" });
+    res.send({ error: "live fetch failed" });
   }
 });
 
 
-// Lock status
 app.get("/lock", (req, res) => {
-  res.send({ locked: teamsLocked });
-});
-
-
-// Leaderboard placeholder (will upgrade next)
-app.get("/leaderboard", (req, res) => {
-  res.send([
-    { user: "Aryaman", points: 0 },
-    { user: "Arun", points: 0 },
-    { user: "Nitesh", points: 0 }
-  ]);
+  res.send({ locked });
 });
 
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port " + PORT);
+  console.log("Server running");
 });
