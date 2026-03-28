@@ -6,96 +6,73 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Dream11 Backend Running 🚀");
-});
-
 const API_KEY = "375bf52c-85b3-4cac-b103-f7505c88958d";
 
 let locked = false;
 
 
-// Get Today's Match
+// root
+app.get("/", (req, res) => {
+  res.send("Dream11 Backend Running");
+});
+
+
+// get today's IPL match
 app.get("/match", async (req, res) => {
   try {
+
     const response = await fetch(
       `https://api.cricapi.com/v1/currentMatches?apikey=${API_KEY}&offset=0`
     );
 
     const data = await response.json();
 
-    const ipl = data.data?.find(m =>
-      m.name?.includes("IPL")
+    const iplMatch = data.data?.find(match =>
+      match.name?.includes("IPL")
     );
 
-    res.send(ipl);
+    res.json(iplMatch);
 
   } catch (err) {
-    res.send({ error: "match fetch failed" });
+    res.json({ error: err.message });
   }
 });
 
 
-// Get Squad
-app.get("/squad/:id", async (req, res) => {
+// live score
+app.get("/live", async (req, res) => {
+
   try {
+
     const response = await fetch(
-      `https://api.cricapi.com/v1/match_squad?apikey=${API_KEY}&id=${req.params.id}`
+      `https://api.cricapi.com/v1/cricScore?apikey=${API_KEY}`
     );
 
     const data = await response.json();
 
-    res.send(data);
-
-  } catch (err) {
-    res.send({ error: "squad fetch failed" });
-  }
-});
-
-
-// Playing XI
-app.get("/playingXI/:id", async (req, res) => {
-  try {
-    const response = await fetch(
-      `https://api.cricapi.com/v1/match_info?apikey=${API_KEY}&id=${req.params.id}`
+    const iplMatch = data.data?.find(match =>
+      match.tournament?.includes("IPL")
     );
 
-    const data = await response.json();
-
-    res.send(data);
-
-  } catch (err) {
-    res.send({ error: "playing XI fetch failed" });
-  }
-});
-
-
-// Live Score
-app.get("/live/:id", async (req, res) => {
-  try {
-    const response = await fetch(
-      `https://api.cricapi.com/v1/cricScore?apikey=${API_KEY}&unique_id=${req.params.id}`
-    );
-
-    const data = await response.json();
-
-    if (data.score && data.score[0]?.o > 0) {
+    if (iplMatch?.score) {
       locked = true;
     }
 
-    res.send({
-      live: data,
+    res.json({
+      match: iplMatch,
       locked
     });
 
   } catch (err) {
-    res.send({ error: "live fetch failed" });
+    res.json({ error: err.message });
   }
+
 });
 
 
+// lock
 app.get("/lock", (req, res) => {
-  res.send({ locked });
+  res.json({ locked });
 });
 
 
