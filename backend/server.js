@@ -36,16 +36,32 @@ app.get("/match", async (req, res) => {
 
     const data = await response.json();
 
-    const iplMatch = data.typeMatches
-      .flatMap(t => t.seriesMatches)
-      .flatMap(s => s.seriesAdWrapper?.matches || [])
-      .find(m =>
-        m.matchInfo?.seriesName?.includes("IPL")
-      );
+    let match = null;
 
-    matchId = iplMatch?.matchInfo?.matchId;
+    data.typeMatches?.forEach(type => {
+      type.seriesMatches?.forEach(series => {
 
-    res.json(iplMatch);
+        const matches = series.seriesAdWrapper?.matches;
+
+        matches?.forEach(m => {
+          if (
+            m.matchInfo?.seriesName?.toLowerCase().includes("ipl") ||
+            m.matchInfo?.seriesName?.toLowerCase().includes("indian premier")
+          ) {
+            match = m;
+          }
+        });
+
+      });
+    });
+
+    if (!match) {
+      return res.json({ message: "No IPL match found", data });
+    }
+
+    matchId = match.matchInfo.matchId;
+
+    res.json(match);
 
   } catch (err) {
     res.json({ error: err.message });
