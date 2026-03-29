@@ -39,24 +39,31 @@ app.get("/match", async (req, res) => {
     let match = null;
 
     data.typeMatches?.forEach(type => {
+
       type.seriesMatches?.forEach(series => {
 
-        const matches = series.seriesAdWrapper?.matches;
+        const seriesName =
+          series.seriesAdWrapper?.seriesName?.toLowerCase();
 
-        matches?.forEach(m => {
-          if (
-            m.matchInfo?.seriesName?.toLowerCase().includes("ipl") ||
-            m.matchInfo?.seriesName?.toLowerCase().includes("indian premier")
-          ) {
-            match = m;
-          }
-        });
+        if (
+          seriesName?.includes("ipl") ||
+          seriesName?.includes("indian premier") ||
+          seriesName?.includes("tata")
+        ) {
+
+          match = series.seriesAdWrapper?.matches?.[0];
+
+        }
 
       });
+
     });
 
     if (!match) {
-      return res.json({ message: "No IPL match found", data });
+      return res.json({
+        message: "No IPL match found",
+        availableSeries: data.typeMatches
+      });
     }
 
     matchId = match.matchInfo.matchId;
@@ -67,7 +74,6 @@ app.get("/match", async (req, res) => {
     res.json({ error: err.message });
   }
 });
-
 
 // Get playing XI + live score
 app.get("/live", async (req, res) => {
