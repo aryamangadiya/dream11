@@ -25,7 +25,7 @@ app.get("/match", async (req, res) => {
   try {
 
     const response = await fetch(
-      "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/live",
+      "https://cricbuzz-cricket.p.rapidapi.com/matches/v1/upcoming",
       {
         headers: {
           "X-RapidAPI-Key": API_KEY,
@@ -40,30 +40,25 @@ app.get("/match", async (req, res) => {
 
     data.typeMatches?.forEach(type => {
 
-      type.seriesMatches?.forEach(series => {
+      if (type.matchType === "League") {
 
-        const seriesName =
-          series.seriesAdWrapper?.seriesName?.toLowerCase();
+        type.seriesMatches?.forEach(series => {
 
-        if (
-          seriesName?.includes("ipl") ||
-          seriesName?.includes("indian premier") ||
-          seriesName?.includes("tata")
-        ) {
+          const name =
+            series.seriesAdWrapper?.seriesName?.toLowerCase();
 
-          match = series.seriesAdWrapper?.matches?.[0];
+          if (name?.includes("indian premier")) {
+            match = series.seriesAdWrapper?.matches?.[0];
+          }
 
-        }
+        });
 
-      });
+      }
 
     });
 
     if (!match) {
-      return res.json({
-        message: "No IPL match found",
-        availableSeries: data.typeMatches
-      });
+      return res.json({ message: "No IPL match found" });
     }
 
     matchId = match.matchInfo.matchId;
