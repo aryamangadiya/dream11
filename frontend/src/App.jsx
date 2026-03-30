@@ -1,264 +1,355 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function App() {
-  const [username, setUsername] = useState("");
-  const [joined, setJoined] = useState(false);
-  const [live, setLive] = useState(null);
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [points, setPoints] = useState(0);
 
-  const [selectedPlayers, setSelectedPlayers] = useState([]);
-  const [captain, setCaptain] = useState(null);
-  const [viceCaptain, setViceCaptain] = useState(null);
-  const [filter, setFilter] = useState("ALL");
+const BACKEND = "https://dream11-hflf.onrender.com";
 
-  const [alerts, setAlerts] = useState([]);
+const [match,setMatch] = useState(null)
+const [players,setPlayers] = useState([])
+const [selected,setSelected] = useState([])
+const [role,setRole] = useState("ALL")
+const [playingXI,setPlayingXI] = useState([])
+const [locked,setLocked] = useState(false)
 
-  const players = [
-    { name: "Virat Kohli", role: "BAT", team: "RCB", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Rohit Sharma", role: "BAT", team: "MI", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "MS Dhoni", role: "WK", team: "CSK", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Hardik Pandya", role: "AR", team: "MI", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Ravindra Jadeja", role: "AR", team: "CSK", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Jasprit Bumrah", role: "BOWL", team: "MI", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Mohammed Shami", role: "BOWL", team: "GT", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Shubman Gill", role: "BAT", team: "GT", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Suryakumar Yadav", role: "BAT", team: "MI", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Rashid Khan", role: "BOWL", team: "GT", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Glenn Maxwell", role: "AR", team: "RCB", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "KL Rahul", role: "WK", team: "LSG", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" },
-    { name: "Trent Boult", role: "BOWL", team: "RR", img: "https://cdn-icons-png.flaticon.com/512/147/147144.png" }
-  ];
 
-  // MOCK PLAYING XI (simulate API)
-  const playingXI = [
-    "Virat Kohli",
-    "Rohit Sharma",
-    "MS Dhoni",
-    "Hardik Pandya",
-    "Ravindra Jadeja",
-    "Jasprit Bumrah",
-    "Shubman Gill",
-    "Suryakumar Yadav",
-    "Rashid Khan",
-    "KL Rahul",
-    "Trent Boult"
-  ];
+// Match
+useEffect(()=>{
 
-  const joinLeague = async () => {
-    const res = await fetch("https://dream11-hflf.onrender.com/join", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ username, code: "IPL123" })
-    });
+fetch(`${BACKEND}/match`)
+.then(res=>res.json())
+.then(data=>setMatch(data))
 
-    const data = await res.json();
-    if (data.name) setJoined(true);
-    else alert(data);
-  };
+},[])
 
-  const togglePlayer = (player) => {
-    const exists = selectedPlayers.find(p => p.name === player.name);
 
-    if (exists) {
-      setSelectedPlayers(selectedPlayers.filter(p => p.name !== player.name));
-      if (captain === player.name) setCaptain(null);
-      if (viceCaptain === player.name) setViceCaptain(null);
-    } else {
-      if (selectedPlayers.length >= 11) {
-        alert("Max 11 players allowed");
-        return;
-      }
-      setSelectedPlayers([...selectedPlayers, player]);
-    }
-  };
+// Squad
+useEffect(()=>{
 
-  const createTeam = async () => {
-    if (selectedPlayers.length !== 11) {
-      alert("Select exactly 11 players");
-      return;
-    }
+fetch(`${BACKEND}/matchDetails`)
+.then(res=>res.json())
+.then(data=>{
 
-    if (!captain || !viceCaptain) {
-      alert("Select Captain and Vice Captain");
-      return;
-    }
+const team1 =
+data?.team1?.playerDetails || []
 
-    if (captain === viceCaptain) {
-      alert("Captain and Vice Captain cannot be same");
-      return;
-    }
+const team2 =
+data?.team2?.playerDetails || []
 
-    const res = await fetch("https://dream11-hflf.onrender.com/team", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        username,
-        matchId: 1,
-        players: selectedPlayers,
-        captain,
-        viceCaptain
-      })
-    });
+setPlayers([...team1,...team2])
 
-    const data = await res.text();
-    alert(data);
-  };
+})
 
-  // CHECK PLAYING XI ALERTS
-  const checkPlayingXI = () => {
-    const notPlaying = selectedPlayers.filter(
-      p => !playingXI.includes(p.name)
-    );
+},[])
 
-    if (notPlaying.length > 0) {
-      setAlerts(notPlaying.map(p => p.name));
-    } else {
-      setAlerts([]);
-    }
-  };
 
-  useEffect(() => {
-    if (!joined) return;
+// Playing XI
 
-    const interval = setInterval(async () => {
-      const res = await fetch("https://dream11-hflf.onrender.com/live/1");
-      const data = await res.json();
-      setLive(data);
+useEffect(()=>{
 
-      const lb = await fetch("https://dream11-hflf.onrender.com/leaderboard");
-      const lbData = await lb.json();
-      setLeaderboard(lbData);
+const interval = setInterval(()=>{
 
-      const pts = await fetch("https://dream11-hflf.onrender.com/points");
-      const ptsData = await pts.json();
-      setPoints(ptsData.total);
+fetch(`${BACKEND}/playingXI`)
+.then(res=>res.json())
+.then(data=>{
 
-      // CHECK ALERTS
-      checkPlayingXI();
+const xi =
+data?.matchHeader?.players || []
 
-    }, 5000);
+setPlayingXI(xi)
 
-    return () => clearInterval(interval);
-  }, [joined, selectedPlayers]);
+})
 
-  return (
-    <div style={{
-      padding: "10px",
-      fontFamily: "Arial",
-      textAlign: "center",
-      background: "#f5f7fb",
-      minHeight: "100vh"
-    }}>
-      {!joined ? (
-        <div>
-          <h1>Join League</h1>
-          <input onChange={(e) => setUsername(e.target.value)} />
-          <br /><br />
-          <button onClick={joinLeague}>Join</button>
-        </div>
-      ) : (
-        <div>
-          <h1>🏏 Fantasy IPL</h1>
+},10000)
 
-          {/* ALERT */}
-          {alerts.length > 0 && (
-            <div style={{
-              background: "#ffcccc",
-              padding: "10px",
-              borderRadius: "8px",
-              marginBottom: "10px"
-            }}>
-              ⚠ Players not in Playing XI:
-              {alerts.map((p, i) => (
-                <div key={i}>{p}</div>
-              ))}
-            </div>
-          )}
+return ()=>clearInterval(interval)
 
-          <h2>Live Match</h2>
-          {live && (
-            <div>
-              <p>{live.match}</p>
-              <p>{live.status}</p>
-            </div>
-          )}
+},[])
 
-          <h2>Your Points: {points}</h2>
 
-          <h2>Create Team ({selectedPlayers.length}/11)</h2>
+// Lock
 
-          <div>
-            {["ALL", "WK", "BAT", "AR", "BOWL"].map(f => (
-              <button key={f} onClick={() => setFilter(f)}>{f}</button>
-            ))}
-          </div>
+useEffect(()=>{
 
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-            gap: "10px"
-          }}>
-            {players
-              .filter(p => filter === "ALL" || p.role === filter)
-              .map((p, i) => {
-                const selected = selectedPlayers.find(sp => sp.name === p.name);
+const interval = setInterval(()=>{
 
-                return (
-                  <div key={i} style={{
-                    padding: "10px",
-                    borderRadius: "12px",
-                    background: selected ? "#d4f8d4" : "white",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                  }}>
-                    <div onClick={() => togglePlayer(p)}>
-                      <img src={p.img} style={{ width: "50px", borderRadius: "50%" }} />
-                      <br />
-                      <b>{p.name}</b>
-                      <br />
-                      {p.role}
-                    </div>
+fetch(`${BACKEND}/lock`)
+.then(res=>res.json())
+.then(data=>setLocked(data.locked))
 
-                    {selected && (
-                      <div>
-                        <button onClick={() => {
-                          if (viceCaptain === p.name) {
-                            alert("Already VC");
-                            return;
-                          }
-                          setCaptain(p.name);
-                        }}>
-                          {captain === p.name ? "C ✅" : "C"}
-                        </button>
+},5000)
 
-                        <button onClick={() => {
-                          if (captain === p.name) {
-                            alert("Already Captain");
-                            return;
-                          }
-                          setViceCaptain(p.name);
-                        }}>
-                          {viceCaptain === p.name ? "VC ✅" : "VC"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-          </div>
+return ()=>clearInterval(interval)
 
-          <br />
+},[])
 
-          <button onClick={createTeam}>Submit Team</button>
 
-          <h2>Leaderboard</h2>
-          <ul>
-            {leaderboard.map((u, i) => (
-              <li key={i}>{i + 1}. {u.user} - {u.points}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
+
+// Select Player
+
+const togglePlayer = (player)=>{
+
+if(locked) return
+
+const exists = selected.find(p=>p.id===player.id)
+
+if(exists){
+
+setSelected(
+selected.filter(p=>p.id!==player.id)
+)
+
+}else{
+
+if(selected.length>=11){
+alert("Only 11 players allowed")
+return
+}
+
+setSelected([...selected,player])
+
+}
+
+}
+
+
+// Role Filter
+
+const filtered = players.filter(p=>{
+
+if(role==="ALL") return true
+
+return p.role === role
+
+})
+
+
+// Image
+
+const getImg = (id)=>{
+
+return `https://static.cricbuzz.com/a/img/v1/72x72/i1/c${id}/player.jpg`
+
+}
+
+
+// Team Count
+
+const team1Count =
+selected.filter(p=>
+p.teamId===match?.matchInfo?.team1?.teamId
+).length
+
+const team2Count =
+selected.filter(p=>
+p.teamId===match?.matchInfo?.team2?.teamId
+).length
+
+
+
+return(
+
+<div
+style={{
+padding:"10px",
+fontFamily:"Arial",
+background:"#f0f2f5",
+minHeight:"100vh"
+}}
+>
+
+
+{/* Header */}
+
+{match && (
+
+<div
+style={{
+background:"#333",
+color:"white",
+padding:"10px",
+borderRadius:"8px",
+marginBottom:"10px"
+}}
+>
+
+<div
+style={{
+display:"flex",
+justifyContent:"space-between"
+}}
+>
+
+<div>
+Players  
+{selected.length}/11
+</div>
+
+<div>
+{match.matchInfo.team1.teamSName}
+{team1Count}
+:
+{team2Count}
+{match.matchInfo.team2.teamSName}
+</div>
+
+</div>
+
+</div>
+
+)}
+
+
+{/* Role Tabs */}
+
+<div
+style={{
+display:"flex",
+justifyContent:"space-around",
+background:"white",
+padding:"10px",
+borderRadius:"8px",
+marginBottom:"10px"
+}}
+>
+
+{["ALL","WK","BAT","AR","BOWL"].map(r=>(
+<button
+key={r}
+onClick={()=>setRole(r)}
+style={{
+padding:"8px",
+background:role===r?"#0f9d58":"white",
+color:role===r?"white":"black",
+border:"1px solid #ddd",
+borderRadius:"5px"
+}}
+>
+{r}
+</button>
+))}
+
+</div>
+
+
+
+{/* Player List */}
+
+{filtered.map((p,i)=>{
+
+const isSelected =
+selected.find(s=>s.id===p.id)
+
+const isPlaying =
+playingXI.find(x=>x.id===p.id)
+
+return(
+
+<div
+key={i}
+style={{
+background:"white",
+marginBottom:"8px",
+padding:"10px",
+borderRadius:"8px",
+display:"flex",
+alignItems:"center",
+justifyContent:"space-between"
+}}
+>
+
+<div
+style={{
+display:"flex",
+alignItems:"center"
+}}
+>
+
+<img
+src={getImg(p.imageId)}
+style={{
+width:"50px",
+borderRadius:"50%",
+marginRight:"10px"
+}}
+/>
+
+<div>
+
+<div>
+<b>{p.name}</b>
+</div>
+
+{isPlaying && (
+<div
+style={{
+color:"green",
+fontSize:"12px"
+}}
+>
+Announced
+</div>
+)}
+
+</div>
+
+</div>
+
+
+<button
+
+onClick={()=>togglePlayer(p)}
+
+style={{
+background:isSelected?"red":"green",
+color:"white",
+border:"none",
+padding:"8px",
+borderRadius:"50%"
+}}
+
+>
+
+{isSelected?"-":"+"}
+
+</button>
+
+
+</div>
+
+)
+
+})}
+
+
+
+{/* Lock */}
+
+{locked && (
+
+<div
+style={{
+position:"fixed",
+bottom:"10px",
+left:"10px",
+right:"10px",
+background:"red",
+color:"white",
+padding:"10px",
+textAlign:"center",
+borderRadius:"8px"
+}}
+>
+
+Teams Locked
+
+</div>
+
+)}
+
+
+
+</div>
+
+)
+
 }
