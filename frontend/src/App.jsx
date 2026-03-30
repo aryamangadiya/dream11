@@ -102,22 +102,6 @@ setPlayers(formatted)
 })
 
 },[])
-.then(res=>res.json())
-.then(data=>{
-
-const xi =
-data?.matchHeader?.players || []
-
-setPlayingXI(xi)
-
-})
-
-},10000)
-
-return ()=>clearInterval(interval)
-
-},[])
-
 
 // Lock
 
