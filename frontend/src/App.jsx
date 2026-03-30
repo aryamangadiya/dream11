@@ -49,8 +49,7 @@ id:p.id,
 name:p.name,
 imageId:p.faceImageId,
 team:"team1",
-role:p.role,
-credits:8 + Math.random()*2
+role:p.role
 })),
 
 ...team2.map(p=>({
@@ -58,8 +57,7 @@ id:p.id,
 name:p.name,
 imageId:p.faceImageId,
 team:"team2",
-role:p.role,
-credits:8 + Math.random()*2
+role:p.role
 }))
 
 ]
@@ -69,7 +67,6 @@ setPlayers(formatted)
 })
 
 },[])
-
 
 // Playing XI
 
@@ -162,9 +159,12 @@ return p.role === role
 
 // Image
 
-const getImg = (id)=>{
+const getImg = (id) => {
 
-return `https://static.cricbuzz.com/a/img/v1/72x72/i1/c${id}/player.jpg`
+if(!id)
+return "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+
+return `https://static.cricbuzz.com/a/img/v1/152x152/i1/c${id}/player_face.jpg`
 
 }
 
