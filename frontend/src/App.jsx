@@ -11,6 +11,13 @@ const [role,setRole] = useState("ALL")
 const [playingXI,setPlayingXI] = useState([])
 const [locked,setLocked] = useState(false)
 
+const [credits,setCredits] = useState(100)
+
+const [captain,setCaptain] = useState(null)
+const [viceCaptain,setViceCaptain] = useState(null)
+
+const [showFormation,setShowFormation] = useState(false)
+
 
 // Match
 useEffect(()=>{
@@ -42,7 +49,8 @@ id:p.id,
 name:p.name,
 imageId:p.faceImageId,
 team:"team1",
-role:p.role
+role:p.role,
+credits:8 + Math.random()*2
 })),
 
 ...team2.map(p=>({
@@ -50,7 +58,8 @@ id:p.id,
 name:p.name,
 imageId:p.faceImageId,
 team:"team2",
-role:p.role
+role:p.role,
+credits:8 + Math.random()*2
 }))
 
 ]
@@ -118,6 +127,8 @@ setSelected(
 selected.filter(p=>p.id!==player.id)
 )
 
+setCredits(credits + player.credits)
+
 }else{
 
 if(selected.length>=11){
@@ -125,7 +136,13 @@ alert("Only 11 players allowed")
 return
 }
 
+if(credits < player.credits){
+alert("Not enough credits")
+return
+}
+
 setSelected([...selected,player])
+setCredits(credits - player.credits)
 
 }
 
@@ -155,14 +172,19 @@ return `https://static.cricbuzz.com/a/img/v1/72x72/i1/c${id}/player.jpg`
 // Team Count
 
 const team1Count =
-selected.filter(p=>
-p.teamId===match?.matchInfo?.team1?.teamId
-).length
+selected.filter(p=>p.team==="team1").length
 
 const team2Count =
-selected.filter(p=>
-p.teamId===match?.matchInfo?.team2?.teamId
-).length
+selected.filter(p=>p.team==="team2").length
+
+
+
+// Formation
+
+const wk = selected.filter(p=>p.role==="WK")
+const bat = selected.filter(p=>p.role==="BAT")
+const ar = selected.filter(p=>p.role==="AR")
+const bowl = selected.filter(p=>p.role==="BOWL")
 
 
 
@@ -180,14 +202,12 @@ minHeight:"100vh"
 
 {/* Header */}
 
-{match && (
-
 <div
 style={{
 background:"#333",
 color:"white",
-padding:"10px",
-borderRadius:"8px",
+padding:"12px",
+borderRadius:"10px",
 marginBottom:"10px"
 }}
 >
@@ -200,23 +220,38 @@ justifyContent:"space-between"
 >
 
 <div>
-Players  
-{selected.length}/11
+Players {selected.length}/11
 </div>
 
 <div>
-{match.matchInfo.team1.teamSName}
-{team1Count}
-:
-{team2Count}
-{match.matchInfo.team2.teamSName}
+Credits {credits.toFixed(1)}
 </div>
 
 </div>
+
+
+{match && (
+
+<div
+style={{
+textAlign:"center",
+marginTop:"5px"
+}}
+>
+
+{match.matchInfo.team1.teamSName}
+{" "}
+{team1Count}
+:
+{team2Count}
+{" "}
+{match.matchInfo.team2.teamSName}
 
 </div>
 
 )}
+
+</div>
 
 
 {/* Role Tabs */}
@@ -254,7 +289,7 @@ borderRadius:"5px"
 
 {/* Player List */}
 
-{filtered.map((p,i)=>{
+{!showFormation && filtered.map((p,i)=>{
 
 const isSelected =
 selected.find(s=>s.id===p.id)
@@ -263,6 +298,7 @@ const isPlaying =
 playingXI.find(x=>x.id===p.id)
 
 return(
+
 <div
 key={i}
 style={{
@@ -299,8 +335,14 @@ marginRight:"12px"
 fontSize:"12px",
 color:"#888"
 }}>
-{p.role}
+{p.role} • {p.credits.toFixed(1)}
 </div>
+
+{isPlaying && (
+<div style={{color:"green",fontSize:"12px"}}>
+Playing XI
+</div>
+)}
 
 </div>
 
@@ -330,56 +372,44 @@ cursor:"pointer"
 
 </div>
 
-<div>
-<b>{p.name}</b>
-</div>
-
-{isPlaying && (
-<div
-style={{
-color:"green",
-fontSize:"12px"
-}}
->
-Announced
-</div>
-)}
-
-</div>
-
-</div>
-
-
-<button
-
-onClick={()=>togglePlayer(p)}
-
-style={{
-background:isSelected?"red":"green",
-color:"white",
-border:"none",
-padding:"8px",
-borderRadius:"50%"
-}}
-
->
-
-{isSelected?"-":"+"}
-
-</button>
-
-
-</div>
-
 )
 
 })}
 
 
 
-{/* Lock */}
+{/* Formation Screen */}
 
-{locked && (
+{showFormation && (
+
+<div
+style={{
+background:"green",
+padding:"20px",
+borderRadius:"12px",
+color:"white"
+}}
+>
+
+<h3>Wicket Keepers</h3>
+<div>{wk.map(p=>p.name)}</div>
+
+<h3>Batters</h3>
+<div>{bat.map(p=>p.name)}</div>
+
+<h3>All Rounders</h3>
+<div>{ar.map(p=>p.name)}</div>
+
+<h3>Bowlers</h3>
+<div>{bowl.map(p=>p.name)}</div>
+
+</div>
+
+)}
+
+
+
+{/* Buttons */}
 
 <div
 style={{
@@ -387,19 +417,49 @@ position:"fixed",
 bottom:"10px",
 left:"10px",
 right:"10px",
-background:"red",
+display:"flex",
+gap:"10px"
+}}
+>
+
+<button
+onClick={()=>setShowFormation(!showFormation)}
+style={{
+flex:1,
+padding:"12px",
+background:"#0f9d58",
 color:"white",
-padding:"10px",
-textAlign:"center",
+border:"none",
 borderRadius:"8px"
 }}
 >
 
-Teams Locked
+{showFormation?"Back":"Preview Team"}
+
+</button>
+
+
+<button
+
+disabled={selected.length!==11}
+
+onClick={()=>alert("Select Captain")}
+
+style={{
+flex:1,
+padding:"12px",
+background:selected.length===11?"#333":"gray",
+color:"white",
+border:"none",
+borderRadius:"8px"
+}}
+>
+
+Continue
+
+</button>
 
 </div>
-
-)}
 
 
 
