@@ -8,7 +8,6 @@ const [match,setMatch] = useState(null)
 const [players,setPlayers] = useState([])
 const [selected,setSelected] = useState([])
 const [role,setRole] = useState("ALL")
-const [playingXI,setPlayingXI] = useState([])
 const [locked,setLocked] = useState(false)
 
 const [credits,setCredits] = useState(100)
@@ -79,9 +78,30 @@ setPlayers(formatted)
 
 useEffect(()=>{
 
-const interval = setInterval(()=>{
+fetch(`${BACKEND}/matchDetails`)
+.then(res=>res.json())
+.then(data=>{
 
-fetch(`${BACKEND}/playingXI`)
+console.log("MATCH DETAILS",data)
+
+const players =
+data?.matchHeader?.players || []
+
+const formatted = players.map(p=>({
+
+id:p.id,
+name:p.name,
+imageId:p.faceImageId,
+team:p.teamId,
+role:p.role || "BAT"
+
+}))
+
+setPlayers(formatted)
+
+})
+
+},[])
 .then(res=>res.json())
 .then(data=>{
 
