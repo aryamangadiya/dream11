@@ -263,37 +263,72 @@ const isPlaying =
 playingXI.find(x=>x.id===p.id)
 
 return(
-
 <div
 key={i}
 style={{
 background:"white",
 marginBottom:"8px",
-padding:"10px",
-borderRadius:"8px",
+padding:"12px",
+borderRadius:"12px",
 display:"flex",
 alignItems:"center",
-justifyContent:"space-between"
+justifyContent:"space-between",
+boxShadow:"0 2px 6px rgba(0,0,0,0.1)"
 }}
 >
 
-<div
-style={{
-display:"flex",
-alignItems:"center"
-}}
->
+<div style={{display:"flex",alignItems:"center"}}>
 
 <img
 src={getImg(p.imageId)}
 style={{
 width:"50px",
+height:"50px",
 borderRadius:"50%",
-marginRight:"10px"
+marginRight:"12px"
 }}
 />
 
 <div>
+
+<div style={{fontWeight:"600"}}>
+{p.name}
+</div>
+
+<div style={{
+fontSize:"12px",
+color:"#888"
+}}>
+{p.role}
+</div>
+
+</div>
+
+</div>
+
+
+<button
+
+onClick={()=>togglePlayer(p)}
+
+style={{
+background:isSelected?"#ff4d4f":"#00a650",
+color:"white",
+border:"none",
+width:"32px",
+height:"32px",
+borderRadius:"50%",
+fontSize:"18px",
+cursor:"pointer"
+}}
+
+>
+
+{isSelected?"−":"+"}
+
+</button>
+
+</div>
 
 <div>
 <b>{p.name}</b>
