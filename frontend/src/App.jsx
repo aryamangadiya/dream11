@@ -23,19 +23,39 @@ fetch(`${BACKEND}/match`)
 
 
 // Squad
-useEffect(()=>{
+useEffect(() => {
 
 fetch(`${BACKEND}/matchDetails`)
-.then(res=>res.json())
-.then(data=>{
+.then(res => res.json())
+.then(data => {
 
 const team1 =
-data?.team1?.playerDetails || []
+data?.matchHeader?.team1?.players || []
 
 const team2 =
-data?.team2?.playerDetails || []
+data?.matchHeader?.team2?.players || []
 
-setPlayers([...team1,...team2])
+const formatted = [
+
+...team1.map(p=>({
+id:p.id,
+name:p.name,
+imageId:p.faceImageId,
+team:"team1",
+role:p.role
+})),
+
+...team2.map(p=>({
+id:p.id,
+name:p.name,
+imageId:p.faceImageId,
+team:"team2",
+role:p.role
+}))
+
+]
+
+setPlayers(formatted)
 
 })
 
