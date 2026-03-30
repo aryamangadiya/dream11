@@ -47,20 +47,21 @@ const formatted = [
 ...team1.map(p=>({
 id:p.id,
 name:p.name,
-imageId:p.faceImageId,
+imageId:p.faceImageId || p.imageId,
 team:"team1",
-role:p.role
+role:p.role || "BAT"
 })),
 
 ...team2.map(p=>({
 id:p.id,
 name:p.name,
-imageId:p.faceImageId,
+imageId:p.faceImageId || p.imageId,
 team:"team2",
-role:p.role
+role:p.role || "BAT"
 }))
 
 ]
+
 
 setPlayers(formatted)
 
@@ -316,12 +317,16 @@ boxShadow:"0 2px 6px rgba(0,0,0,0.1)"
 <div style={{display:"flex",alignItems:"center"}}>
 
 <img
-src={getImg(p.imageId)}
+src={getImg(p)}
+onError={(e)=>{
+e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=0f9d58&color=fff`
+}}
 style={{
 width:"50px",
 height:"50px",
 borderRadius:"50%",
-marginRight:"12px"
+marginRight:"12px",
+objectFit:"cover"
 }}
 />
 
