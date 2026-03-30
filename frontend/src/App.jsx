@@ -36,32 +36,38 @@ fetch(`${BACKEND}/matchDetails`)
 .then(res => res.json())
 .then(data => {
 
+console.log("MATCH DETAILS:", data)
+
 const team1 =
 data?.matchHeader?.team1?.players || []
 
 const team2 =
 data?.matchHeader?.team2?.players || []
 
+console.log("TEAM1", team1)
+console.log("TEAM2", team2)
+
 const formatted = [
 
 ...team1.map(p=>({
 id:p.id,
 name:p.name,
-imageId:p.faceImageId || p.imageId,
+imageId:p.faceImageId,
 team:"team1",
-role:p.role || "BAT"
+role:p.role
 })),
 
 ...team2.map(p=>({
 id:p.id,
 name:p.name,
-imageId:p.faceImageId || p.imageId,
+imageId:p.faceImageId,
 team:"team2",
-role:p.role || "BAT"
+role:p.role
 }))
 
 ]
 
+console.log("PLAYERS", formatted)
 
 setPlayers(formatted)
 
