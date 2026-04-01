@@ -69,6 +69,35 @@ app.get("/match", async (req, res) => {
     res.json({ error: err.message });
   }
 });
+// match details 
+
+app.get("/matchDetails", async (req, res) => {
+
+try {
+
+const response = await fetch(
+"https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/series/9241",
+{
+headers: {
+"X-RapidAPI-Key": process.env.RAPID_API_KEY,
+"X-RapidAPI-Host": "cricbuzz-cricket.p.rapidapi.com"
+}
+}
+)
+
+const data = await response.json()
+
+res.json(data)
+
+} catch (err) {
+
+res.status(500).json({
+error: "Failed to fetch match details"
+})
+
+}
+
+})
 
 // Get playing XI + live score
 app.get("/live", async (req, res) => {
