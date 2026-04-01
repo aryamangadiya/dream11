@@ -7,81 +7,71 @@ app.use(cors())
 
 let team1 = null
 let team2 = null
-let locked = false
 
+// Today's IPL Match
+async function getTodayMatch(){
 
-// IPL Schedule
+try{
 
-const IPL_SCHEDULE = {
+const res = await fetch(
+"https://www.iplt20.com/api/matches"
+)
 
-"2026-04-01": ["Lucknow Super Giants","Delhi Capitals"],
-"2026-04-02": ["Kolkata Knight Riders","Sunrisers Hyderabad"],
-"2026-04-03": ["Chennai Super Kings","Punjab Kings"]
-
-}
-
-
-// Detect Match
-
-function detectMatch(){
+const data = await res.json()
 
 const today = new Date()
 .toISOString()
 .split("T")[0]
 
-const match = IPL_SCHEDULE[today]
+const todayMatch =
+data.find(m =>
+m.matchDate.startsWith(today)
+)
 
-if(match){
+team1 = todayMatch?.team1
+team2 = todayMatch?.team2
 
-team1 = match[0]
-team2 = match[1]
+}catch(err){
+
+console.log("match error")
+
+}
 
 }
 
-}
+getTodayMatch()
 
-detectMatch()
-
-setInterval(detectMatch,60000)
+setInterval(getTodayMatch,60000)
 
 
-// Squads + Roles
+// Squads
 
-const IPL_SQUADS = {
+app.get("/squads", async (req,res)=>{
 
-"Lucknow Super Giants":[
+try{
 
-{name:"KL Rahul",role:"WK"},
-{name:"Nicholas Pooran",role:"WK"},
-{name:"Marcus Stoinis",role:"AR"},
-{name:"Quinton de Kock",role:"WK"},
-{name:"Krunal Pandya",role:"AR"},
-{name:"Deepak Hooda",role:"AR"},
-{name:"Ravi Bishnoi",role:"BOWL"},
-{name:"Avesh Khan",role:"BOWL"},
-{name:"Mohsin Khan",role:"BOWL"},
-{name:"Mark Wood",role:"BOWL"},
-{name:"Ayush Badoni",role:"BAT"}
+const response = await fetch(
+"https://www.iplt20.com/api/players"
+)
 
-],
+const players = await response.json()
 
-"Delhi Capitals":[
+const filtered = players.filter(p=>
 
-{name:"David Warner",role:"BAT"},
-{name:"Prithvi Shaw",role:"BAT"},
-{name:"Rishabh Pant",role:"WK"},
-{name:"Mitchell Marsh",role:"AR"},
-{name:"Axar Patel",role:"AR"},
-{name:"Lalit Yadav",role:"AR"},
-{name:"Kuldeep Yadav",role:"BOWL"},
-{name:"Anrich Nortje",role:"BOWL"},
-{name:"Khaleel Ahmed",role:"BOWL"},
-{name:"Mukesh Kumar",role:"BOWL"},
-{name:"Ishant Sharma",role:"BOWL"}
+p.team === team1 ||
+p.team === team2
 
-]
+)
+
+res.json(filtered)
+
+}catch(err){
+
+res.json([])
 
 }
+
+})
 
 
 
@@ -98,37 +88,7 @@ team2
 
 
 
-// Squads
-
-app.get("/squads",(req,res)=>{
-
-if(!team1 || !team2){
-
-return res.json([])
-
-}
-
-const players = [
-
-...(IPL_SQUADS[team1] || []).map(p=>({
-...p,
-team:"team1"
-})),
-
-...(IPL_SQUADS[team2] || []).map(p=>({
-...p,
-team:"team2"
-}))
-
-]
-
-res.json(players)
-
-})
-
-
-
-// Playing XI (after toss placeholder)
+// Playing XI (after toss)
 
 app.get("/playingXI",(req,res)=>{
 
@@ -140,16 +100,15 @@ playingXI:[]
 
 
 
-// Lock after first ball
+// Lock
 
 app.get("/lock",(req,res)=>{
 
 res.json({
-locked
+locked:false
 })
 
 })
-
 
 
 app.listen(5000,()=>{
