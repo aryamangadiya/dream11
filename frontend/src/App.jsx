@@ -1,45 +1,55 @@
-import { useEffect, useState } from "react";
+import { useEffect,useState } from "react"
 
-export default function App() {
+export default function App(){
 
-const BACKEND = "https://dream11-hflf.onrender.com";
+const BACKEND =
+"https://dream11-hflf.onrender.com"
 
-const [match,setMatch] = useState(null)
 const [players,setPlayers] = useState([])
 const [selected,setSelected] = useState([])
 const [role,setRole] = useState("ALL")
+
 const [credits,setCredits] = useState(100)
 
 
-// Get Match
+// Fetch Squads
 
-useEffect(() => {
+useEffect(()=>{
 
-fetch("https://www.cricbuzz.com/api/cricket-match-squads/149640")
-.then(res => res.json())
-.then(data => {
+fetch(`${BACKEND}/squads`)
+.then(res=>res.json())
+.then(data=>{
 
-console.log("CRICBUZZ DATA", data)
+console.log(data)
 
-const team1 = data?.team1?.players || []
-const team2 = data?.team2?.players || []
+const team1 =
+data?.team1?.players || []
+
+const team2 =
+data?.team2?.players || []
 
 const formatted = [
 
 ...team1.map(p=>({
+
 id:p.id,
 name:p.name,
-imageId:p.faceImageId,
+image:p.faceImageId,
+role:p.role || "BAT",
 team:"team1",
-role:p.role || "BAT"
+credits:8 + Math.random()*2
+
 })),
 
 ...team2.map(p=>({
+
 id:p.id,
 name:p.name,
-imageId:p.faceImageId,
+image:p.faceImageId,
+role:p.role || "BAT",
 team:"team2",
-role:p.role || "BAT"
+credits:8 + Math.random()*2
+
 }))
 
 ]
@@ -47,105 +57,144 @@ role:p.role || "BAT"
 setPlayers(formatted)
 
 })
-.catch(err => console.log(err))
 
 },[])
 
-// Select Player
 
-const togglePlayer = (player)=>{
+// Image
 
-const exists = selected.find(p=>p.id===player.id)
+const getImg = (id)=>{
+
+return
+`https://static.cricbuzz.com/a/img/v1/72x72/i1/c${id}/player_face.jpg`
+
+}
+
+
+
+// Select
+
+const toggle = (p)=>{
+
+const exists =
+selected.find(x=>x.id===p.id)
 
 if(exists){
 
-setSelected(selected.filter(p=>p.id!==player.id))
-setCredits(credits + player.credits)
+setSelected(
+selected.filter(x=>x.id!==p.id)
+)
+
+setCredits(credits + p.credits)
 
 }else{
 
 if(selected.length>=11){
-alert("Max 11 players")
+alert("Only 11 players")
 return
 }
 
-if(credits < player.credits){
-alert("Not enough credits")
+if(credits < p.credits){
+alert("No credits")
 return
 }
 
-setSelected([...selected,player])
-setCredits(credits - player.credits)
+setSelected([...selected,p])
+setCredits(credits - p.credits)
 
 }
 
 }
+
 
 
 // Filter
 
-const filtered = players.filter(p=>{
+const filtered =
+players.filter(p=>{
 
-if(role==="ALL") return true
+if(role==="ALL")
+return true
+
 return p.role===role
 
 })
 
 
-// Image
-
-const getImg = (player)=>{
-
-if(player.imageId){
-return `https://static.cricbuzz.com/a/img/v1/152x152/i1/c${player.imageId}/player_face.jpg`
-}
-
-return `https://ui-avatars.com/api/?name=${player.name}`
-
-}
-
-
 
 return(
 
-<div style={{
+<div
+style={{
 padding:"10px",
-background:"#f0f2f5",
+background:"#f5f5f5",
 minHeight:"100vh"
-}}>
-
+}}
+>
 
 {/* Header */}
 
-<div style={{
+<div
+style={{
 background:"#333",
 color:"white",
-padding:"10px",
+padding:"12px",
 borderRadius:"10px",
 marginBottom:"10px"
-}}>
+}}
+>
 
-Players {selected.length}/11  
+<div
+style={{
+display:"flex",
+justifyContent:"space-between"
+}}
+>
+
+<div>
+Players {selected.length}/11
+</div>
+
+<div>
 Credits {credits.toFixed(1)}
+</div>
+
+</div>
 
 </div>
 
 
+
 {/* Tabs */}
 
-<div style={{
+<div
+style={{
 display:"flex",
 justifyContent:"space-around",
 background:"white",
 padding:"10px",
 borderRadius:"10px",
 marginBottom:"10px"
-}}>
+}}
+>
 
-{["ALL","WK","BAT","AR","BOWL"].map(r=>(
+{["ALL","WK","BAT","AR","BOWL"]
+.map(r=>(
 <button
-key={r}
 onClick={()=>setRole(r)}
+style={{
+padding:"8px",
+background:
+role===r
+?"#0f9d58"
+:"white",
+color:
+role===r
+?"white"
+:"black",
+border:"1px solid #ccc",
+borderRadius:"5px"
+}}
 >
 {r}
 </button>
@@ -157,13 +206,12 @@ onClick={()=>setRole(r)}
 
 {/* Players */}
 
-{filtered.map((p,i)=>(
+{filtered.map(p=>(
 
 <div
-key={i}
 style={{
 background:"white",
-padding:"10px",
+padding:"12px",
 marginBottom:"8px",
 borderRadius:"10px",
 display:"flex",
@@ -172,13 +220,18 @@ alignItems:"center"
 }}
 >
 
-<div style={{display:"flex"}}>
+<div
+style={{
+display:"flex",
+alignItems:"center"
+}}
+>
 
 <img
-src={getImg(p)}
+src={getImg(p.image)}
 style={{
-width:"40px",
-height:"40px",
+width:"45px",
+height:"45px",
 borderRadius:"50%",
 marginRight:"10px"
 }}
@@ -186,23 +239,92 @@ marginRight:"10px"
 
 <div>
 
-<div>{p.name}</div>
-<div>{p.role}</div>
+<div
+style={{
+fontWeight:"600"
+}}
+>
+{p.name}
+</div>
 
+<div
+style={{
+fontSize:"12px",
+color:"#777"
+}}
+>
+{p.role}
 </div>
 
 </div>
+
+</div>
+
 
 
 <button
-onClick={()=>togglePlayer(p)}
+onClick={()=>toggle(p)}
+style={{
+background:"#00a650",
+color:"white",
+border:"none",
+width:"32px",
+height:"32px",
+borderRadius:"50%"
+}}
 >
+
 +
+
 </button>
 
 </div>
 
 ))}
+
+
+
+{/* Bottom */}
+
+<div
+style={{
+position:"fixed",
+bottom:"10px",
+left:"10px",
+right:"10px",
+display:"flex",
+gap:"10px"
+}}
+>
+
+<button
+style={{
+flex:1,
+padding:"12px",
+background:"#0f9d58",
+color:"white",
+border:"none",
+borderRadius:"8px"
+}}
+>
+Preview Team
+</button>
+
+<button
+style={{
+flex:1,
+padding:"12px",
+background:"gray",
+color:"white",
+border:"none",
+borderRadius:"8px"
+}}
+>
+Continue
+</button>
+
+</div>
+
 
 
 </div>
