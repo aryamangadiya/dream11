@@ -8,6 +8,12 @@ app.use(cors())
 
 let MATCH_ID = null
 
+app.get("/match", async (req,res)=>{
+res.json({
+matchId: MATCH_ID
+})
+})
+
 
 // Auto detect today's IPL match
 
