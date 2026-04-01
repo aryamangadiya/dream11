@@ -8,6 +8,9 @@ app.use(cors())
 
 const MATCH_ID = 149640
 
+app.get("/", (req,res)=>{
+res.send("Dream11 Backend Running")
+})
 
 app.get("/squads", async (req,res)=>{
 
