@@ -6,88 +6,18 @@ const app = express()
 
 app.use(cors())
 
-let MATCH_ID = null
-
-app.get("/match", async (req,res)=>{
-res.json({
-matchId: MATCH_ID
-})
-})
+let team1 = null
+let team2 = null
 
 
-// Auto detect today's IPL match
+// Detect today's IPL match
 
-async function getTodayMatch(){
+async function detectMatch(){
 
 try{
 
 const response = await fetch(
-"https://www.cricbuzz.com/api/html/matches-menu",
-{
-headers:{
-"User-Agent":"Mozilla/5.0"
-}
-}
-)
-
-const data = await response.json()
-
-for(const type of data.matches){
-
-for(const series of type.seriesMatches || []){
-
-if(series.seriesName?.includes("Indian Premier League")){
-
-const match =
-series.seriesAdWrapper?.matches?.[0]
-
-MATCH_ID =
-match?.matchInfo?.matchId
-
-return
-
-}
-
-}
-
-}
-
-}catch(err){
-
-console.log("match detect failed")
-
-}
-
-}
-
-
-// Call once at startup
-getTodayMatch()
-
-
-// Root
-app.get("/",(req,res)=>{
-
-res.send("Dream11 Backend Running")
-
-})
-
-
-
-// Squads
-
-app.get("/squads", async (req,res)=>{
-
-try{
-
-if(!MATCH_ID){
-
-await getTodayMatch()
-
-}
-
-const response = await fetch(
-`https://www.cricbuzz.com/cricket-match-squads/${MATCH_ID}`,
+"https://www.cricbuzz.com/cricket-schedule/series/ipl-2026",
 {
 headers:{
 "User-Agent":"Mozilla/5.0"
@@ -99,34 +29,114 @@ const html = await response.text()
 
 const $ = cheerio.load(html)
 
-const players = []
+const todayMatch =
+$(".cb-col-100.cb-col .cb-col-75").first().text()
 
-$(".cb-col-50").each((i,team)=>{
+if(todayMatch){
 
-$(team).find(".cb-player-card-name").each((j,p)=>{
+const teams =
+todayMatch.split(" vs ")
 
-players.push({
+team1 = teams[0]?.trim()
+team2 = teams[1]?.trim()
 
-name:$(p).text().trim(),
-role:"BAT",
-team:i===0?"team1":"team2",
-credits:8 + Math.random()*2
-
-})
-
-})
-
-})
-
-res.json(players)
+}
 
 }catch(err){
 
-res.json({
-error:"failed squads"
+console.log("detect error",err)
+
+}
+
+}
+
+
+// Run every 30 mins
+
+setInterval(detectMatch,1800000)
+
+detectMatch()
+
+
+
+// Sample IPL squads (expand later)
+
+const IPL = {
+
+"Lucknow Super Giants":[
+"KL Rahul",
+"Quinton de Kock",
+"Marcus Stoinis",
+"Nicholas Pooran",
+"Krunal Pandya",
+"Deepak Hooda",
+"Ravi Bishnoi",
+"Avesh Khan",
+"Mohsin Khan",
+"Mark Wood",
+"Ayush Badoni"
+],
+
+"Delhi Capitals":[
+"David Warner",
+"Prithvi Shaw",
+"Rishabh Pant",
+"Mitchell Marsh",
+"Axar Patel",
+"Lalit Yadav",
+"Kuldeep Yadav",
+"Anrich Nortje",
+"Khaleel Ahmed",
+"Mukesh Kumar",
+"Ishant Sharma"
+]
+
+}
+
+
+
+// Squads
+
+app.get("/squads",(req,res)=>{
+
+if(!team1 || !team2){
+
+return res.json({
+message:"Match not detected yet"
 })
 
 }
+
+const players = [
+
+...(IPL[team1] || []).map(p=>({
+name:p,
+team:"team1",
+credits:8 + Math.random()*2,
+role:"BAT"
+})),
+
+...(IPL[team2] || []).map(p=>({
+name:p,
+team:"team2",
+credits:8 + Math.random()*2,
+role:"BAT"
+}))
+
+]
+
+res.json(players)
+
+})
+
+
+
+app.get("/match",(req,res)=>{
+
+res.json({
+team1,
+team2
+})
 
 })
 
