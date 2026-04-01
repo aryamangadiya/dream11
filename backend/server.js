@@ -1,6 +1,5 @@
 import express from "express"
 import cors from "cors"
-import * as cheerio from "cheerio"
 
 const app = express()
 
@@ -10,64 +9,52 @@ let team1 = null
 let team2 = null
 
 
-// Detect today's IPL match
+// IPL 2026 Schedule (extendable)
 
-async function detectMatch(){
+const IPL_SCHEDULE = {
 
-try{
-
-const response = await fetch(
-"https://www.cricbuzz.com/cricket-schedule/series/ipl-2026",
-{
-headers:{
-"User-Agent":"Mozilla/5.0"
-}
-}
-)
-
-const html = await response.text()
-
-const $ = cheerio.load(html)
-
-const todayMatch =
-$(".cb-col-100.cb-col .cb-col-75").first().text()
-
-if(todayMatch){
-
-const teams =
-todayMatch.split(" vs ")
-
-team1 = teams[0]?.trim()
-team2 = teams[1]?.trim()
-
-}
-
-}catch(err){
-
-console.log("detect error",err)
-
-}
+"2026-04-01": ["Lucknow Super Giants","Delhi Capitals"],
+"2026-04-02": ["Kolkata Knight Riders","Sunrisers Hyderabad"],
+"2026-04-03": ["Chennai Super Kings","Punjab Kings"],
+"2026-04-04": ["Delhi Capitals","Mumbai Indians"]
 
 }
 
 
-// Run every 30 mins
+// Detect today's match
 
-setInterval(detectMatch,1800000)
+function detectMatch(){
+
+const today = new Date()
+.toISOString()
+.split("T")[0]
+
+const match = IPL_SCHEDULE[today]
+
+if(match){
+
+team1 = match[0]
+team2 = match[1]
+
+}
+
+}
 
 detectMatch()
 
+setInterval(detectMatch,60000)
 
 
-// Sample IPL squads (expand later)
 
-const IPL = {
+// Squads
+
+const IPL_SQUADS = {
 
 "Lucknow Super Giants":[
 "KL Rahul",
-"Quinton de Kock",
-"Marcus Stoinis",
 "Nicholas Pooran",
+"Marcus Stoinis",
+"Quinton de Kock",
 "Krunal Pandya",
 "Deepak Hooda",
 "Ravi Bishnoi",
@@ -94,49 +81,47 @@ const IPL = {
 }
 
 
-
-// Squads
-
-app.get("/squads",(req,res)=>{
-
-if(!team1 || !team2){
-
-return res.json({
-message:"Match not detected yet"
-})
-
-}
-
-const players = [
-
-...(IPL[team1] || []).map(p=>({
-name:p,
-team:"team1",
-credits:8 + Math.random()*2,
-role:"BAT"
-})),
-
-...(IPL[team2] || []).map(p=>({
-name:p,
-team:"team2",
-credits:8 + Math.random()*2,
-role:"BAT"
-}))
-
-]
-
-res.json(players)
-
-})
-
-
-
 app.get("/match",(req,res)=>{
 
 res.json({
 team1,
 team2
 })
+
+})
+
+
+app.get("/squads",(req,res)=>{
+
+if(!team1 || !team2){
+
+return res.json([])
+
+}
+
+const players = [
+
+...(IPL_SQUADS[team1] || []).map(p=>({
+
+name:p,
+team:"team1",
+role:"BAT",
+credits:8 + Math.random()*2
+
+})),
+
+...(IPL_SQUADS[team2] || []).map(p=>({
+
+name:p,
+team:"team2",
+role:"BAT",
+credits:8 + Math.random()*2
+
+}))
+
+]
+
+res.json(players)
 
 })
 
