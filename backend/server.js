@@ -6,7 +6,7 @@ const app = express()
 
 app.use(cors())
 
-const MATCH_ID = 149640
+const MATCH_ID = 149641
 
 app.get("/", (req,res)=>{
 res.send("Dream11 Backend Running")
@@ -17,8 +17,12 @@ app.get("/squads", async (req,res)=>{
 try{
 
 const response = await fetch(
-`https://www.cricbuzz.com/cricket-match-squads/${MATCH_ID}`
-)
+`https://www.cricbuzz.com/cricket-match-squads/${MATCH_ID}`,
+{
+headers:{
+"User-Agent":"Mozilla/5.0"
+}
+})
 
 const html = await response.text()
 
@@ -26,7 +30,7 @@ const $ = cheerio.load(html)
 
 const players = []
 
-$(".cb-col.cb-col-50").each((i,team)=>{
+$(".cb-col-50").each((i,team)=>{
 
 $(team).find(".cb-player-card-name").each((j,p)=>{
 
