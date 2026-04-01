@@ -6,15 +6,79 @@ const app = express()
 
 app.use(cors())
 
-const MATCH_ID = 149641
+let MATCH_ID = null
 
-app.get("/", (req,res)=>{
+
+// Auto detect today's IPL match
+
+async function getTodayMatch(){
+
+try{
+
+const response = await fetch(
+"https://www.cricbuzz.com/api/html/matches-menu",
+{
+headers:{
+"User-Agent":"Mozilla/5.0"
+}
+}
+)
+
+const data = await response.json()
+
+for(const type of data.matches){
+
+for(const series of type.seriesMatches || []){
+
+if(series.seriesName?.includes("Indian Premier League")){
+
+const match =
+series.seriesAdWrapper?.matches?.[0]
+
+MATCH_ID =
+match?.matchInfo?.matchId
+
+return
+
+}
+
+}
+
+}
+
+}catch(err){
+
+console.log("match detect failed")
+
+}
+
+}
+
+
+// Call once at startup
+getTodayMatch()
+
+
+// Root
+app.get("/",(req,res)=>{
+
 res.send("Dream11 Backend Running")
+
 })
+
+
+
+// Squads
 
 app.get("/squads", async (req,res)=>{
 
 try{
+
+if(!MATCH_ID){
+
+await getTodayMatch()
+
+}
 
 const response = await fetch(
 `https://www.cricbuzz.com/cricket-match-squads/${MATCH_ID}`,
@@ -22,7 +86,8 @@ const response = await fetch(
 headers:{
 "User-Agent":"Mozilla/5.0"
 }
-})
+}
+)
 
 const html = await response.text()
 
