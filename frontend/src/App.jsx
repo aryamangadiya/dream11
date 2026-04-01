@@ -13,46 +13,43 @@ const [credits,setCredits] = useState(100)
 
 // Get Match
 
-useEffect(()=>{
+useEffect(() => {
 
-fetch(`${BACKEND}/match`)
-.then(res=>res.json())
-.then(data=>setMatch(data))
+fetch("https://www.cricbuzz.com/api/cricket-match-squads/149640")
+.then(res => res.json())
+.then(data => {
 
-},[])
+console.log("CRICBUZZ DATA", data)
 
+const team1 = data?.team1?.players || []
+const team2 = data?.team2?.players || []
 
-// Get Players
+const formatted = [
 
-useEffect(()=>{
-
-fetch(`${BACKEND}/matchDetails`)
-.then(res=>res.json())
-.then(data=>{
-
-console.log("DATA",data)
-
-const players =
-data?.matchHeader?.players || []
-
-const formatted = players.map(p=>({
-
+...team1.map(p=>({
 id:p.id,
 name:p.name,
 imageId:p.faceImageId,
-team:p.teamId,
-role:p.role || "BAT",
-credits:8 + Math.random()*2
+team:"team1",
+role:p.role || "BAT"
+})),
 
+...team2.map(p=>({
+id:p.id,
+name:p.name,
+imageId:p.faceImageId,
+team:"team2",
+role:p.role || "BAT"
 }))
+
+]
 
 setPlayers(formatted)
 
 })
+.catch(err => console.log(err))
 
 },[])
-
-
 
 // Select Player
 
