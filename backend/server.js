@@ -7,21 +7,21 @@ app.use(cors())
 
 let team1 = null
 let team2 = null
+let locked = false
 
 
-// IPL 2026 Schedule (extendable)
+// IPL Schedule
 
 const IPL_SCHEDULE = {
 
 "2026-04-01": ["Lucknow Super Giants","Delhi Capitals"],
 "2026-04-02": ["Kolkata Knight Riders","Sunrisers Hyderabad"],
-"2026-04-03": ["Chennai Super Kings","Punjab Kings"],
-"2026-04-04": ["Delhi Capitals","Mumbai Indians"]
+"2026-04-03": ["Chennai Super Kings","Punjab Kings"]
 
 }
 
 
-// Detect today's match
+// Detect Match
 
 function detectMatch(){
 
@@ -45,41 +45,47 @@ detectMatch()
 setInterval(detectMatch,60000)
 
 
-
-// Squads
+// Squads + Roles
 
 const IPL_SQUADS = {
 
 "Lucknow Super Giants":[
-"KL Rahul",
-"Nicholas Pooran",
-"Marcus Stoinis",
-"Quinton de Kock",
-"Krunal Pandya",
-"Deepak Hooda",
-"Ravi Bishnoi",
-"Avesh Khan",
-"Mohsin Khan",
-"Mark Wood",
-"Ayush Badoni"
+
+{name:"KL Rahul",role:"WK"},
+{name:"Nicholas Pooran",role:"WK"},
+{name:"Marcus Stoinis",role:"AR"},
+{name:"Quinton de Kock",role:"WK"},
+{name:"Krunal Pandya",role:"AR"},
+{name:"Deepak Hooda",role:"AR"},
+{name:"Ravi Bishnoi",role:"BOWL"},
+{name:"Avesh Khan",role:"BOWL"},
+{name:"Mohsin Khan",role:"BOWL"},
+{name:"Mark Wood",role:"BOWL"},
+{name:"Ayush Badoni",role:"BAT"}
+
 ],
 
 "Delhi Capitals":[
-"David Warner",
-"Prithvi Shaw",
-"Rishabh Pant",
-"Mitchell Marsh",
-"Axar Patel",
-"Lalit Yadav",
-"Kuldeep Yadav",
-"Anrich Nortje",
-"Khaleel Ahmed",
-"Mukesh Kumar",
-"Ishant Sharma"
+
+{name:"David Warner",role:"BAT"},
+{name:"Prithvi Shaw",role:"BAT"},
+{name:"Rishabh Pant",role:"WK"},
+{name:"Mitchell Marsh",role:"AR"},
+{name:"Axar Patel",role:"AR"},
+{name:"Lalit Yadav",role:"AR"},
+{name:"Kuldeep Yadav",role:"BOWL"},
+{name:"Anrich Nortje",role:"BOWL"},
+{name:"Khaleel Ahmed",role:"BOWL"},
+{name:"Mukesh Kumar",role:"BOWL"},
+{name:"Ishant Sharma",role:"BOWL"}
+
 ]
 
 }
 
+
+
+// Match
 
 app.get("/match",(req,res)=>{
 
@@ -90,6 +96,9 @@ team2
 
 })
 
+
+
+// Squads
 
 app.get("/squads",(req,res)=>{
 
@@ -102,21 +111,13 @@ return res.json([])
 const players = [
 
 ...(IPL_SQUADS[team1] || []).map(p=>({
-
-name:p,
-team:"team1",
-role:"BAT",
-credits:8 + Math.random()*2
-
+...p,
+team:"team1"
 })),
 
 ...(IPL_SQUADS[team2] || []).map(p=>({
-
-name:p,
-team:"team2",
-role:"BAT",
-credits:8 + Math.random()*2
-
+...p,
+team:"team2"
 }))
 
 ]
@@ -124,6 +125,31 @@ credits:8 + Math.random()*2
 res.json(players)
 
 })
+
+
+
+// Playing XI (after toss placeholder)
+
+app.get("/playingXI",(req,res)=>{
+
+res.json({
+playingXI:[]
+})
+
+})
+
+
+
+// Lock after first ball
+
+app.get("/lock",(req,res)=>{
+
+res.json({
+locked
+})
+
+})
+
 
 
 app.listen(5000,()=>{
