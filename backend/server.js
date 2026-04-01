@@ -1,16 +1,13 @@
 import express from "express"
 import cors from "cors"
-import cheerio from "cheerio"
+import * as cheerio from "cheerio"
 
 const app = express()
 
 app.use(cors())
 
-// Match ID (RR vs CSK today)
 const MATCH_ID = 149640
 
-
-// Squads
 
 app.get("/squads", async (req,res)=>{
 
@@ -56,7 +53,6 @@ error:"failed squads"
 })
 
 
-
 app.listen(5000,()=>{
-console.log("server running")
+console.log("Server running")
 })
